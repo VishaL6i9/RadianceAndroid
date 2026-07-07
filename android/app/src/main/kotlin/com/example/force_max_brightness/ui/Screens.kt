@@ -3,8 +3,11 @@ package com.example.force_max_brightness.ui
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,8 +15,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.MutableState
 import com.example.force_max_brightness.MainActivity
 import kotlinx.coroutines.launch
@@ -47,7 +55,6 @@ fun BrightnessControlScreen(
         autoStartEnabled = activity.getAutoStart()
     }
     
-    // Recheck permission when screen comes into focus
     LaunchedEffect(permissionState?.value) {
         hasPermission = activity.canWriteSettings()
     }
@@ -59,10 +66,11 @@ fun BrightnessControlScreen(
             .padding(top = 16.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // Permission Status Card
+        HeaderSection()
+        Spacer(modifier = Modifier.height(24.dp))
+
         PermissionCard(
             hasPermission = hasPermission,
-            statusMessage = statusMessage,
             onRequestPermission = {
                 val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
                     data = Uri.parse("package:${activity.packageName}")
@@ -71,9 +79,8 @@ fun BrightnessControlScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Brightness Control Card
         BrightnessControlCard(
             currentBrightness = currentBrightness,
             sliderValue = sliderValue,
@@ -120,9 +127,8 @@ fun BrightnessControlScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Window Brightness Card
         WindowBrightnessCard(
             windowBrightnessActive = windowBrightnessActive,
             onForceMax = {
@@ -148,9 +154,8 @@ fun BrightnessControlScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Media Monitor Card
         MediaMonitorCard(
             serviceRunning = serviceRunning,
             autoStartEnabled = autoStartEnabled,
@@ -177,13 +182,31 @@ fun BrightnessControlScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+        StatusBar(statusMessage)
+    }
+}
 
-        // Status Message
+@Composable
+fun HeaderSection() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
         Text(
-            text = "Status: $statusMessage",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(8.dp)
+            "Brightness Control",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp
+            ),
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            "Manage system & window brightness",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -191,39 +214,85 @@ fun BrightnessControlScreen(
 @Composable
 fun PermissionCard(
     hasPermission: Boolean,
-    statusMessage: String,
     onRequestPermission: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    val backgroundColor = animateColorAsState(
+        targetValue = if (hasPermission) 
+            MaterialTheme.colorScheme.primaryContainer 
+        else 
+            MaterialTheme.colorScheme.errorContainer,
+        animationSpec = tween(500)
+    )
+    
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .shadow(4.dp, shape = RoundedCornerShape(16.dp)),
+        color = backgroundColor.value
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    imageVector = if (hasPermission) Icons.Default.CheckCircle else Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = if (hasPermission) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    "Permission Status",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
+                Surface(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    color = if (hasPermission) 
+                        MaterialTheme.colorScheme.primary 
+                    else 
+                        MaterialTheme.colorScheme.error
+                ) {
+                    Icon(
+                        imageVector = if (hasPermission) Icons.Default.CheckCircle else Icons.Default.WarningAmber,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .size(28.dp)
+                    )
+                }
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Permissions",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (hasPermission) 
+                            MaterialTheme.colorScheme.onPrimaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    Text(
+                        if (hasPermission) "Granted" else "Required",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = if (hasPermission) 
+                            MaterialTheme.colorScheme.onPrimaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(statusMessage, style = MaterialTheme.typography.bodySmall)
+            
             if (!hasPermission) {
-                Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onRequestPermission,
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text("Grant Permission")
                 }
             }
@@ -244,46 +313,41 @@ fun BrightnessControlCard(
     onMaxClicked: () -> Unit,
     onModeChanged: (Int) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .shadow(4.dp, shape = RoundedCornerShape(16.dp)),
+        color = MaterialTheme.colorScheme.surfaceContainer
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "Brightness Control",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Current: $currentBrightness/255 (${(currentBrightness * 100 / 255)}%)",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                "Mode: ${if (brightnessMode == 0) "Manual" else "Auto"}",
-                style = MaterialTheme.typography.bodySmall,
-                color = if (brightnessMode == 1) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Button(
-                    onClick = { onModeChanged(0) },
-                    modifier = Modifier.weight(1f),
-                    enabled = hasPermission
-                ) {
-                    Text("Manual", fontSize = MaterialTheme.typography.labelSmall.fontSize)
-                }
-                Button(
-                    onClick = { onModeChanged(1) },
-                    modifier = Modifier.weight(1f),
-                    enabled = hasPermission
-                ) {
-                    Text("Auto", fontSize = MaterialTheme.typography.labelSmall.fontSize)
+                Icon(
+                    Icons.Default.BrightnessHigh,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "System Brightness",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "$currentBrightness/255 (${(currentBrightness * 100 / 255)}%)",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Slider(
                 value = sliderValue,
                 onValueChange = onSliderChange,
@@ -292,32 +356,65 @@ fun BrightnessControlCard(
                 enabled = hasPermission,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(8.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
+                FilledTonalButton(
                     onClick = onMinClicked,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
                     enabled = hasPermission
                 ) {
-                    Text("Min")
+                    Text("Min", style = MaterialTheme.typography.labelMedium)
                 }
-                Button(
+                FilledTonalButton(
                     onClick = onMidClicked,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
                     enabled = hasPermission
                 ) {
-                    Text("Mid")
+                    Text("Mid", style = MaterialTheme.typography.labelMedium)
                 }
-                Button(
+                FilledTonalButton(
                     onClick = onMaxClicked,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
+                    enabled = hasPermission,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Text("Max", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = brightnessMode == 0,
+                    onClick = { onModeChanged(0) },
+                    label = { Text("Manual") },
                     modifier = Modifier.weight(1f),
                     enabled = hasPermission
-                ) {
-                    Text("Max")
-                }
+                )
+                FilterChip(
+                    selected = brightnessMode == 1,
+                    onClick = { onModeChanged(1) },
+                    label = { Text("Auto") },
+                    modifier = Modifier.weight(1f),
+                    enabled = hasPermission
+                )
             }
         }
     }
@@ -330,59 +427,74 @@ fun WindowBrightnessCard(
     onMedium: () -> Unit,
     onReset: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .shadow(4.dp, shape = RoundedCornerShape(16.dp)),
+        color = MaterialTheme.colorScheme.surfaceContainer
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    "Window Brightness",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
+                Icon(
+                    Icons.Default.LightMode,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.size(24.dp)
                 )
-                if (windowBrightnessActive) {
-                    Icon(
-                        imageVector = Icons.Default.Lightbulb,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Window Brightness Override",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        if (windowBrightnessActive) "Active" else "Inactive",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (windowBrightnessActive) 
+                            MaterialTheme.colorScheme.tertiary 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "No permission needed",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
+                FilledTonalButton(
                     onClick = onForceMax,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
                     )
                 ) {
-                    Text("Max")
+                    Text("Max", style = MaterialTheme.typography.labelMedium)
                 }
-                Button(
+                FilledTonalButton(
                     onClick = onMedium,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp)
                 ) {
-                    Text("Mid")
+                    Text("Mid", style = MaterialTheme.typography.labelMedium)
                 }
-                Button(
+                OutlinedButton(
                     onClick = onReset,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp)
                 ) {
-                    Text("Reset")
+                    Text("Reset", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -397,75 +509,121 @@ fun MediaMonitorCard(
     onStopClicked: () -> Unit,
     onAutoStartChanged: (Boolean) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .shadow(4.dp, shape = RoundedCornerShape(16.dp)),
+        color = MaterialTheme.colorScheme.surfaceContainer
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    "Auto Monitor",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
+                Icon(
+                    Icons.Default.PlayCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(24.dp)
                 )
-                if (serviceRunning) {
-                    Icon(
-                        imageVector = Icons.Default.FavoriteBorder,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(12.dp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Media Playback Monitor",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        if (serviceRunning) "Running" else "Stopped",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (serviceRunning) 
+                            MaterialTheme.colorScheme.secondary 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Boost brightness during playback",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
+                FilledTonalButton(
                     onClick = onStartClicked,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
                     enabled = !serviceRunning,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )
                 ) {
-                    Text("Start")
+                    Text("Start", style = MaterialTheme.typography.labelMedium)
                 }
-                Button(
+                FilledTonalButton(
                     onClick = onStopClicked,
-                    modifier = Modifier.weight(1f),
-                    enabled = serviceRunning,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
+                    enabled = serviceRunning
                 ) {
-                    Text("Stop")
+                    Text("Stop", style = MaterialTheme.typography.labelMedium)
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    "Auto-start on boot",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.weight(1f)
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Auto-start on boot",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
                 Switch(
                     checked = autoStartEnabled,
                     onCheckedChange = onAutoStartChanged
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun StatusBar(statusMessage: String) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .shadow(2.dp, shape = RoundedCornerShape(12.dp)),
+        color = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                statusMessage,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
