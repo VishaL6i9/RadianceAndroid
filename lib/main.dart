@@ -389,19 +389,26 @@ class _BrightnessControlPageState extends State<BrightnessControlPage> {
                     ),
                     const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        ElevatedButton(
-                          onPressed: _hasPermission ? () => _setBrightness(0) : null,
-                          child: const Text('Min (0)'),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _hasPermission ? () => _setBrightness(0) : null,
+                            child: const Text('Min'),
+                          ),
                         ),
-                        ElevatedButton(
-                          onPressed: _hasPermission ? () => _setBrightness(128) : null,
-                          child: const Text('Mid (128)'),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _hasPermission ? () => _setBrightness(128) : null,
+                            child: const Text('Mid'),
+                          ),
                         ),
-                        ElevatedButton(
-                          onPressed: _hasPermission ? _setMaxBrightness : null,
-                          child: const Text('Max (255)'),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _hasPermission ? _setMaxBrightness : null,
+                            child: const Text('Max'),
+                          ),
                         ),
                       ],
                     ),
@@ -446,22 +453,29 @@ class _BrightnessControlPageState extends State<BrightnessControlPage> {
                     ),
                     const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        ElevatedButton(
-                          onPressed: () => _setWindowBrightness(255),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _setWindowBrightness(255),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                            ),
+                            child: const Text('Max'),
                           ),
-                          child: const Text('Force Max'),
                         ),
-                        ElevatedButton(
-                          onPressed: () => _setWindowBrightness(128),
-                          child: const Text('Medium'),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _setWindowBrightness(128),
+                            child: const Text('Mid'),
+                          ),
                         ),
-                        ElevatedButton(
-                          onPressed: () => _setWindowBrightness(-1),
-                          child: const Text('Reset'),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _setWindowBrightness(-1),
+                            child: const Text('Reset'),
+                          ),
                         ),
                       ],
                     ),
@@ -505,22 +519,26 @@ class _BrightnessControlPageState extends State<BrightnessControlPage> {
                     ),
                     const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        ElevatedButton.icon(
-                          onPressed: !_serviceRunning ? _startMediaMonitor : null,
-                          icon: const Icon(Icons.play_arrow),
-                          label: const Text('Start Monitor'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: !_serviceRunning ? _startMediaMonitor : null,
+                            icon: const Icon(Icons.play_arrow, size: 20),
+                            label: const Text('Start'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
                           ),
                         ),
-                        ElevatedButton.icon(
-                          onPressed: _serviceRunning ? _stopMediaMonitor : null,
-                          icon: const Icon(Icons.stop),
-                          label: const Text('Stop Monitor'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _serviceRunning ? _stopMediaMonitor : null,
+                            icon: const Icon(Icons.stop, size: 20),
+                            label: const Text('Stop'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
                           ),
                         ),
                       ],
