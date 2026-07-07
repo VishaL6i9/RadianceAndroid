@@ -1,0 +1,66 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/Vishal%20Kandakatla/.gradle/wrapper/dists/gradle-8.12-all/ejduaidbjup3bmmkhw3rie4zb/gradle-8.12/lib/native-platform-0.22-milestone-27.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :clean
+> Task :app:clean UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateDebugResValues
+> Task :app:checkDebugAarMetadata
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:parseDebugLocalResources
+> Task :app:extractDeepLinksDebug
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:javaPreCompileDebug
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :app:desugarDebugFileDependencies
+> Task :app:mergeDebugJniLibFolders
+> Task :app:checkDebugDuplicateClasses
+> Task :app:mergeDebugNativeLibs
+> Task :app:validateSigningDebug
+> Task :app:mergeLibDexDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:processDebugManifestForPackage
+> Task :app:stripDebugDebugSymbols
+> Task :app:processDebugResources
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///C:/Users/Vishal%20Kandakatla/AndroidStudioProjects/ForceMaxBrightness/force_max_brightness/android/app/src/main/kotlin/com/example/force_max_brightness/ui/Screens.kt:31:23 Property delegate must have a 'setValue(Nothing?, KMutableProperty0<*>, Boolean)' method. None of the following functions is applicable:
+fun MutableFloatState.setValue(thisObj: Any?, property: KProperty<*>, value: Float): Unit
+fun MutableDoubleState.setValue(thisObj: Any?, property: KProperty<*>, value: Double): Unit
+fun MutableIntState.setValue(thisObj: Any?, property: KProperty<*>, value: Int): Unit
+fun MutableLongState.setValue(thisObj: Any?, property: KProperty<*>, value: Long): Unit
+fun <T> MutableState<T>.setValue(thisObj: Any?, property: KProperty<*>, value: T): Unit
+e: file:///C:/Users/Vishal%20Kandakatla/AndroidStudioProjects/ForceMaxBrightness/force_max_brightness/android/app/src/main/kotlin/com/example/force_max_brightness/ui/Screens.kt:70:26 Cannot access 'val permissionLauncher: ActivityResultLauncher<Intent>': it is private in 'com/example/force_max_brightness/MainActivity'.
+
+> Task :app:mergeExtDexDebug
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 7s
+30 actionable tasks: 29 executed, 1 up-to-date

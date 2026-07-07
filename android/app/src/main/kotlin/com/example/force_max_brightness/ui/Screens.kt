@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.MutableState
 import com.example.force_max_brightness.MainActivity
+import com.example.force_max_brightness.OnePlusHBMController
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
@@ -37,6 +38,7 @@ fun BrightnessControlScreen(
     if (activity == null) return
     
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var hasPermission by remember { mutableStateOf(permissionState?.value ?: false) }
     var currentBrightness by remember { mutableStateOf(128) }
@@ -46,6 +48,9 @@ fun BrightnessControlScreen(
     var windowBrightnessActive by remember { mutableStateOf(false) }
     var serviceRunning by remember { mutableStateOf(false) }
     var autoStartEnabled by remember { mutableStateOf(false) }
+    var hbmController by remember { mutableStateOf<OnePlusHBMController?>(null) }
+    var hbmIndicatorActive by remember { mutableStateOf(false) }
+    var peakBrightnessNits by remember { mutableStateOf(1000) }
 
     LaunchedEffect(Unit) {
         hasPermission = activity.canWriteSettings()
@@ -55,10 +60,25 @@ fun BrightnessControlScreen(
             sliderValue = brightness.toFloat()
         }
         autoStartEnabled = activity.getAutoStart()
+        
+        // Initialize HBM controller
+        val controller = OnePlusHBMController(context)
+        hbmController = controller
+        peakBrightnessNits = controller.peakBrightnessNits.value
+        controller.startHDRMonitoring()
     }
     
     LaunchedEffect(permissionState?.value) {
         hasPermission = activity.canWriteSettings()
+    }
+    
+    // Monitor HBM indicator
+    LaunchedEffect(hbmController) {
+        while (true) {
+            hbmController?.updateHBMIndicator()
+            hbmIndicatorActive = hbmController?.hbmIndicatorActive?.value ?: false
+            kotlinx.coroutines.delay(1000) // Update every second
+        }
     }
 
     Scaffold(
@@ -239,6 +259,13 @@ fun BrightnessControlScreen(
                         statusMessage = if (enabled) "Auto-start enabled" else "Auto-start disabled"
                     }
                 }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            HBMIndicatorCard(
+                hbmActive = hbmIndicatorActive,
+                peakBrightnessNits = peakBrightnessNits
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -652,6 +679,107 @@ fun MediaMonitorCard(
                     modifier = Modifier.scale(scaleX = 0.9f, scaleY = 0.9f)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun HBMIndicatorCard(
+    hbmActive: Boolean,
+    peakBrightnessNits: Int
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = if (hbmActive) 
+                MaterialTheme.colorScheme.tertiaryContainer 
+            else 
+                MaterialTheme.colorScheme.surfaceContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    color = if (hbmActive) 
+                        MaterialTheme.colorScheme.tertiary 
+                    else 
+                        MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        if (hbmActive) Icons.Default.BrightnessHigh else Icons.Outlined.BrightnessHigh,
+                        contentDescription = null,
+                        tint = if (hbmActive)
+                            Color.White
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "HBM Status (Non-Root Indicator)",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        if (hbmActive) "HDR Detected" else "SDR Content",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = if (hbmActive)
+                            MaterialTheme.colorScheme.onTertiaryContainer
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp)),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Brightness4,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        "Peak: $peakBrightnessNits nits",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                "Non-root mode: Shows HDR detection only. Root access required to control HBM brightness.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
