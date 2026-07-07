@@ -77,8 +77,8 @@ _Coming soon_
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/VishaL6i9/Radiance.git
-cd Radiance
+git clone https://github.com/VishaL6i9/RadianceAndroid.git
+cd RadianceAndroid
 ```
 
 2. Build the debug APK:
@@ -99,7 +99,7 @@ Or build and install in one step:
 
 #### APK Download
 
-Download the latest APK from [Releases](../../releases)
+Download the latest APK from [Releases](https://github.com/VishaL6i9/RadianceAndroid/releases)
 
 #### First Launch
 
@@ -289,8 +289,8 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## Contact & Support
 
-- **Issues**: [GitHub Issues](../../issues)
-- **Discussions**: [GitHub Discussions](../../discussions)
+- **Issues**: [GitHub Issues](https://github.com/VishaL6i9/RadianceAndroid/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/VishaL6i9/RadianceAndroid/discussions)
 
 ---
 
