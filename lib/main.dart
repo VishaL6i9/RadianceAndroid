@@ -37,6 +37,7 @@ class _BrightnessControlPageState extends State<BrightnessControlPage> {
   String _statusMessage = 'Initializing...';
   int _brightnessMode = 0; // 0 = MANUAL, 1 = AUTO
   bool _windowBrightnessActive = false;
+  bool _serviceRunning = false;
   
   @override
   void initState() {
@@ -138,6 +139,34 @@ class _BrightnessControlPageState extends State<BrightnessControlPage> {
         _statusMessage = 'Brightness mode set to ${mode == 0 ? "MANUAL" : "AUTO"}';
       });
       _getCurrentBrightness();
+    } on PlatformException catch (e) {
+      setState(() {
+        _statusMessage = 'Error: ${e.message}';
+      });
+    }
+  }
+  
+  Future<void> _startMediaMonitor() async {
+    try {
+      await platform.invokeMethod('startMediaMonitor');
+      setState(() {
+        _serviceRunning = true;
+        _statusMessage = 'Media monitor started';
+      });
+    } on PlatformException catch (e) {
+      setState(() {
+        _statusMessage = 'Error: ${e.message}';
+      });
+    }
+  }
+  
+  Future<void> _stopMediaMonitor() async {
+    try {
+      await platform.invokeMethod('stopMediaMonitor');
+      setState(() {
+        _serviceRunning = false;
+        _statusMessage = 'Media monitor stopped';
+      });
     } on PlatformException catch (e) {
       setState(() {
         _statusMessage = 'Error: ${e.message}';
@@ -404,6 +433,66 @@ class _BrightnessControlPageState extends State<BrightnessControlPage> {
                         ElevatedButton(
                           onPressed: () => _setWindowBrightness(-1),
                           child: const Text('Reset'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Media Monitor Service Card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Auto-Brightness Monitor',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (_serviceRunning)
+                          const Icon(Icons.circle, color: Colors.green, size: 16),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Automatically boost brightness during media playback',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '⚠️ Requires Notification Access permission (Settings > Special Access)',
+                      style: TextStyle(fontSize: 11, color: Colors.orange),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: !_serviceRunning ? _startMediaMonitor : null,
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('Start Monitor'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: _serviceRunning ? _stopMediaMonitor : null,
+                          icon: const Icon(Icons.stop),
+                          label: const Text('Stop Monitor'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
                         ),
                       ],
                     ),

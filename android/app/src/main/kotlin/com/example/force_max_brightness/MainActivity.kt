@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -153,6 +154,24 @@ class MainActivity : FlutterActivity() {
                     } catch (e: Exception) {
                         result.error("ERROR", "Could not write setting: ${e.message}", null)
                     }
+                }
+                "startMediaMonitor" -> {
+                    val intent = Intent(context, MediaMonitorService::class.java).apply {
+                        action = "START_MONITORING"
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
+                    result.success(null)
+                }
+                "stopMediaMonitor" -> {
+                    val intent = Intent(context, MediaMonitorService::class.java).apply {
+                        action = "STOP_MONITORING"
+                    }
+                    context.stopService(intent)
+                    result.success(null)
                 }
                 else -> {
                     result.notImplemented()
