@@ -1,5 +1,8 @@
 package com.example.force_max_brightness.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,16 +14,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.MutableState
 import com.example.force_max_brightness.MainActivity
 import kotlinx.coroutines.launch
 
 @Composable
-fun BrightnessControlScreen() {
+fun BrightnessControlScreen(
+    activity: MainActivity? = LocalContext.current as? MainActivity,
+    permissionState: MutableState<Boolean>? = null
+) {
+    if (activity == null) return
+    
     val context = LocalContext.current
-    val mainActivity = context as? MainActivity ?: return
     val scope = rememberCoroutineScope()
 
-    var hasPermission by remember { mutableStateOf(false) }
+    var hasPermission by remember { mutableStateOf(permissionState?.value ?: false) }
     var currentBrightness by remember { mutableStateOf(128) }
     var sliderValue by remember { mutableStateOf(128f) }
     var statusMessage by remember { mutableStateOf("Initializing...") }
@@ -30,20 +38,25 @@ fun BrightnessControlScreen() {
     var autoStartEnabled by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        hasPermission = mainActivity.canWriteSettings()
+        hasPermission = activity.canWriteSettings()
         if (hasPermission) {
-            val brightness = mainActivity.getSystemBrightness()
+            val brightness = activity.getSystemBrightness()
             currentBrightness = brightness
             sliderValue = brightness.toFloat()
         }
-        autoStartEnabled = mainActivity.getAutoStart()
+        autoStartEnabled = activity.getAutoStart()
+    }
+    
+    // Recheck permission when screen comes into focus
+    LaunchedEffect(permissionState?.value) {
+        hasPermission = activity.canWriteSettings()
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(top = 16.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.Top
     ) {
         // Permission Status Card
@@ -51,10 +64,10 @@ fun BrightnessControlScreen() {
             hasPermission = hasPermission,
             statusMessage = statusMessage,
             onRequestPermission = {
-                scope.launch {
-                    mainActivity.requestWriteSettingsPermission()
-                    statusMessage = "Please grant permission and return"
+                val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
+                    data = Uri.parse("package:${activity.packageName}")
                 }
+                activity.permissionLauncher.launch(intent)
             }
         )
 
@@ -69,14 +82,14 @@ fun BrightnessControlScreen() {
             onSliderChange = { sliderValue = it },
             onSliderChangeEnd = {
                 scope.launch {
-                    mainActivity.setSystemBrightness(it.toInt())
+                    activity.setSystemBrightness(it.toInt())
                     currentBrightness = it.toInt()
                     statusMessage = "Brightness: ${it.toInt()}/255"
                 }
             },
             onMinClicked = {
                 scope.launch {
-                    mainActivity.setSystemBrightness(0)
+                    activity.setSystemBrightness(0)
                     currentBrightness = 0
                     sliderValue = 0f
                     statusMessage = "Min brightness"
@@ -84,7 +97,7 @@ fun BrightnessControlScreen() {
             },
             onMidClicked = {
                 scope.launch {
-                    mainActivity.setSystemBrightness(128)
+                    activity.setSystemBrightness(128)
                     currentBrightness = 128
                     sliderValue = 128f
                     statusMessage = "Mid brightness"
@@ -92,7 +105,7 @@ fun BrightnessControlScreen() {
             },
             onMaxClicked = {
                 scope.launch {
-                    mainActivity.setSystemBrightness(255)
+                    activity.setSystemBrightness(255)
                     currentBrightness = 255
                     sliderValue = 255f
                     statusMessage = "Max brightness"
@@ -100,7 +113,7 @@ fun BrightnessControlScreen() {
             },
             onModeChanged = { newMode ->
                 scope.launch {
-                    mainActivity.setBrightnessMode(newMode)
+                    activity.setBrightnessMode(newMode)
                     brightnessMode = newMode
                     statusMessage = if (newMode == 0) "Manual mode" else "Auto mode"
                 }
@@ -114,21 +127,21 @@ fun BrightnessControlScreen() {
             windowBrightnessActive = windowBrightnessActive,
             onForceMax = {
                 scope.launch {
-                    mainActivity.setWindowBrightness(255)
+                    activity.setWindowBrightness(255)
                     windowBrightnessActive = true
                     statusMessage = "Window brightness: max"
                 }
             },
             onMedium = {
                 scope.launch {
-                    mainActivity.setWindowBrightness(128)
+                    activity.setWindowBrightness(128)
                     windowBrightnessActive = true
                     statusMessage = "Window brightness: medium"
                 }
             },
             onReset = {
                 scope.launch {
-                    mainActivity.setWindowBrightness(-1)
+                    activity.setWindowBrightness(-1)
                     windowBrightnessActive = false
                     statusMessage = "Window brightness: reset"
                 }
@@ -143,21 +156,21 @@ fun BrightnessControlScreen() {
             autoStartEnabled = autoStartEnabled,
             onStartClicked = {
                 scope.launch {
-                    mainActivity.startMediaMonitor()
+                    activity.startMediaMonitor()
                     serviceRunning = true
                     statusMessage = "Monitor started"
                 }
             },
             onStopClicked = {
                 scope.launch {
-                    mainActivity.stopMediaMonitor()
+                    activity.stopMediaMonitor()
                     serviceRunning = false
                     statusMessage = "Monitor stopped"
                 }
             },
             onAutoStartChanged = { enabled ->
                 scope.launch {
-                    mainActivity.setAutoStart(enabled)
+                    activity.setAutoStart(enabled)
                     autoStartEnabled = enabled
                     statusMessage = if (enabled) "Auto-start enabled" else "Auto-start disabled"
                 }

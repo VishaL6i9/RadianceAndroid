@@ -8,18 +8,32 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.mutableStateOf
 import com.example.force_max_brightness.ui.BrightnessControlScreen
 import com.example.force_max_brightness.ui.theme.ForceMaxBrightnessTheme
 
 class MainActivity : ComponentActivity() {
+    val permissionState = mutableStateOf(false)
+    
+    val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // Recheck permission after user returns from settings
+        permissionState.value = Settings.System.canWrite(this@MainActivity)
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ForceMaxBrightnessTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    BrightnessControlScreen()
+                    BrightnessControlScreen(
+                        activity = this@MainActivity,
+                        permissionState = permissionState
+                    )
                 }
             }
         }
